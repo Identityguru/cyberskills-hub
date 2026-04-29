@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Upload a Skill — CyberSkills Hub{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-10">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white mb-2">Upload a Skill</h1>
+    <p class="text-slate-400">Share your expertise. All uploads are reviewed before publication.</p>
+  </div>
+
+  {% if error %}
+  <div class="bg-red-900/30 border border-red-700 text-red-400 rounded-xl px-4 py-3 mb-6 text-sm">{{ error }}</div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <form method="post" action="/skills/upload" enctype="multipart/form-data"
+          class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Skill Name <span class="text-red-400">*</span></label>
+        <input name="name" required placeholder="e.g. Okta MFA Policy Gap Audit"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Description <span class="text-red-400">*</span></label>
+        <textarea name="description" required rows="3" placeholder="What does this skill do? When should Claude use it?"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-slate-300 font-medium mb-1.5">Category <span class="text-red-400">*</span></label>
+          <select name="category" required
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-cyan-500 text-sm">
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 font-medium mb-1.5">Platform <span class="text-red-400">*</span></label>
+          <select name="vendor" required
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-cyan-500 text-sm">
+            {% for v in vendors %}
+            <option value="{{ v }}">{{ v | capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-slate-300 font-medium mb-1.5">MITRE ATT&CK IDs</label>
+          <input name="mitre_ids" placeholder="T1078, T1110, T1134"
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm" />
+          <p class="text-xs text-slate-600 mt-1">Comma-separated technique IDs</p>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 font-medium mb-1.5">Tags</label>
+          <input name="tags" placeholder="iam, audit, zero-trust"
+            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm" />
+          <p class="text-xs text-slate-600 mt-1">Comma-separated keywords</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Version</label>
+        <input name="version" value="1.0" class="w-32 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-cyan-500 text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">SKILL.md File <span class="text-red-400">*</span></label>
+        <div class="border-2 border-dashed border-slate-700 hover:border-cyan-600 rounded-xl p-6 text-center transition-colors cursor-pointer"
+             onclick="document.getElementById('skill_file').click()">
+          <input id="skill_file" type="file" name="skill_file" accept=".md,.txt" required class="hidden" />
+          <div class="text-3xl mb-2">📄</div>
+          <p class="text-slate-400 text-sm">Click to select your SKILL.md file</p>
+          <p class="text-slate-600 text-xs mt-1">.md or .txt</p>
+        </div>
+      </div>
+
+      <button type="submit"
+        class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-colors">
+        Submit for Review
+      </button>
+    </form>
+
+    <!-- SKILL.md format guide -->
+    <div class="space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-widest mb-3">SKILL.md Format</h3>
+        <pre class="text-xs text-cyan-400 overflow-x-auto leading-relaxed"><code>---
+name: your-skill-name
+description: What it does
+domain: cybersecurity
+subdomain: iam
+vendor: okta
+tags: [iam, audit]
+mitre_attack: [T1078]
+version: "1.0"
+---
+
+## When to Use
+Trigger conditions...
+
+## Prerequisites
+Required tools, access...
+
+## Workflow
+Step-by-step guide...
+
+## Verification
+How to confirm success...</code></pre>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs text-slate-400 space-y-2">
+        <p class="text-slate-300 font-medium">Review Process</p>
+        <p>Submissions are reviewed by admins before going live. Typically within 24–48 hours.</p>
+        <p>Skills must include a workflow section and at least one prerequisite.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

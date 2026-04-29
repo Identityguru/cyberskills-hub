@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Sign Up — CyberSkills Hub{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold text-white">Join CyberSkills Hub</h1>
+      <p class="text-slate-400 text-sm mt-1">Create an account to upload and share skills</p>
+    </div>
+    {% if error %}
+    <div class="bg-red-900/30 border border-red-700 text-red-400 rounded-xl px-4 py-3 mb-4 text-sm">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/auth/register" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Username</label>
+        <input name="username" required autocomplete="username"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Email</label>
+        <input name="email" type="email" required autocomplete="email"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Password</label>
+        <input name="password" type="password" required autocomplete="new-password" minlength="8"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm" />
+      </div>
+      <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-xl transition-colors">
+        Create Account
+      </button>
+    </form>
+    <p class="text-center text-sm text-slate-500 mt-4">
+      Already have an account? <a href="/auth/login" class="text-cyan-400 hover:underline">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Security Key Verification — CyberSkills Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-md text-center" id="fido2-app">
+
+    <!-- Waiting state -->
+    <div id="state-waiting" class="hidden">
+      <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-cyan-500/10 border-2 border-cyan-500 flex items-center justify-center animate-pulse">
+        <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-white mb-2">Touch your Security Key</h1>
+      <p class="text-slate-400 text-sm">Insert your YubiKey and tap the gold disc when it blinks</p>
+    </div>
+
+    <!-- Initial state -->
+    <div id="state-initial">
+      <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+        <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-white mb-2">Admin Verification Required</h1>
+      <p class="text-slate-400 text-sm mb-2">Welcome back, <span class="text-cyan-400 font-medium">{{ username }}</span></p>
+      <p class="text-slate-500 text-xs mb-8">Your account requires security key (FIDO2/YubiKey) verification to access admin features.</p>
+
+      <button id="btn-authenticate"
+        class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        Verify with Security Key
+      </button>
+    </div>
+
+    <!-- Error state -->
+    <div id="state-error" class="hidden">
+      <div class="bg-red-900/30 border border-red-700 text-red-400 rounded-xl px-4 py-3 mb-6 text-sm" id="error-msg"></div>
+      <button id="btn-retry" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl transition-colors">
+        Try Again
+      </button>
+    </div>
+
+    <!-- Success state -->
+    <div id="state-success" class="hidden">
+      <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-500/10 border-2 border-emerald-500 flex items-center justify-center">
+        <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-white mb-2">Verified</h2>
+      <p class="text-slate-400 text-sm">Redirecting to admin panel…</p>
+    </div>
+
+    <div class="mt-6">
+      <a href="/auth/logout" class="text-slate-500 text-xs hover:text-slate-400">← Back to login</a>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/webauthn.js"></script>
+<script>
+  document.getElementById('btn-authenticate').addEventListener('click', startAuthentication);
+  document.getElementById('btn-retry')?.addEventListener('click', () => {
+    show('initial');
+    startAuthentication();
+  });
+
+  async function startAuthentication() {
+    show('waiting');
+    try {
+      const opts = await fetchJSON('/auth/fido2/authenticate/begin', 'POST');
+      const credential = await navigator.credentials.get({ publicKey: parseAuthOpts(opts) });
+      const payload = serializeAssertion(credential);
+      const result = await fetchJSON('/auth/fido2/authenticate/complete', 'POST', payload);
+      show('success');
+      setTimeout(() => window.location.href = result.redirect || '/admin', 800);
+    } catch (err) {
+      document.getElementById('error-msg').textContent = err.message || 'Verification failed. Ensure your key is inserted.';
+      show('error');
+    }
+  }
+
+  function show(state) {
+    ['initial', 'waiting', 'error', 'success'].forEach(s =>
+      document.getElementById('state-' + s)?.classList.toggle('hidden', s !== state)
+    );
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}User Management — CyberSkills Hub Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10">
+
+  <!-- Tab nav -->
+  <div class="flex items-center gap-1 mb-8 border-b border-slate-800 pb-0">
+    <a href="/admin" class="px-4 py-2 text-sm text-slate-500 hover:text-white border-b-2 border-transparent">Skills Queue</a>
+    <a href="/admin/users" class="px-4 py-2 text-sm text-white border-b-2 border-cyan-500 font-medium">Users</a>
+    <a href="/auth/fido2/register" class="px-4 py-2 text-sm text-slate-500 hover:text-white border-b-2 border-transparent">My Security Keys</a>
+  </div>
+
+  <div class="flex items-start justify-between mb-6 gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-white">User Management</h1>
+      <p class="text-slate-400 text-sm mt-1">{{ users | length }} registered accounts</p>
+    </div>
+
+    <!-- Create user form (collapsed) -->
+    <details class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm w-full sm:w-auto">
+      <summary class="text-cyan-400 cursor-pointer font-medium">+ Create User Account</summary>
+      <form method="post" action="/admin/users/create" class="mt-4 space-y-3 min-w-64">
+        <input name="username" placeholder="Username" required
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        <input name="email" type="email" placeholder="Email" required
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        <input name="password" type="password" placeholder="Temporary password" required
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        <select name="role"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+          <option value="contributor">Contributor</option>
+          <option value="viewer">Viewer</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 rounded-lg text-sm transition-colors">
+          Create Account
+        </button>
+      </form>
+    </details>
+  </div>
+
+  {% if request.query_params.get('error') %}
+  <div class="bg-red-900/30 border border-red-700 text-red-400 rounded-xl px-4 py-3 mb-4 text-sm">
+    {% if request.query_params.get('error') == 'email_exists' %}Email already in use.
+    {% elif request.query_params.get('error') == 'missing_fields' %}All fields required.
+    {% else %}Error creating user.{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Users table -->
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-slate-800">
+          <th class="text-left px-4 py-3 text-slate-400 font-medium">User</th>
+          <th class="text-left px-4 py-3 text-slate-400 font-medium">Role</th>
+          <th class="text-left px-4 py-3 text-slate-400 font-medium hidden sm:table-cell">Skills</th>
+          <th class="text-left px-4 py-3 text-slate-400 font-medium hidden sm:table-cell">MFA</th>
+          <th class="text-left px-4 py-3 text-slate-400 font-medium hidden md:table-cell">Joined</th>
+          <th class="text-left px-4 py-3 text-slate-400 font-medium">Status</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+          <td class="px-4 py-3">
+            <div class="font-medium text-white">{{ u.username }}</div>
+            <div class="text-slate-500 text-xs">{{ u.email }}</div>
+          </td>
+          <td class="px-4 py-3">
+            {% if u.id != current_user.id %}
+            <form method="post" action="/admin/users/{{ u.id }}/role" class="inline-flex">
+              <select name="role" onchange="this.form.submit()"
+                class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none">
+                <option value="viewer" {% if u.role == 'viewer' %}selected{% endif %}>Viewer</option>
+                <option value="contributor" {% if u.role == 'contributor' %}selected{% endif %}>Contributor</option>
+                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+              </select>
+            </form>
+            {% else %}
+            <span class="text-xs bg-cyan-900/30 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full">{{ u.role }} (you)</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 hidden sm:table-cell text-slate-400">{{ u.skill_count }}</td>
+          <td class="px-4 py-3 hidden sm:table-cell">
+            {% if u.has_yubikey %}
+            <span class="text-xs bg-emerald-900/30 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">
+              🔑 {{ u.yubikey_count }} key{{ 's' if u.yubikey_count != 1 }}
+            </span>
+            {% elif u.role == 'admin' %}
+            <span class="text-xs bg-yellow-900/30 text-yellow-400 border border-yellow-800 px-2 py-0.5 rounded-full">⚠ No key</span>
+            {% else %}
+            <span class="text-slate-600 text-xs">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 hidden md:table-cell text-slate-500 text-xs">{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+          <td class="px-4 py-3">
+            {% if u.is_active %}
+            <span class="text-xs text-emerald-400">Active</span>
+            {% else %}
+            <span class="text-xs text-red-400">Suspended</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            {% if u.id != current_user.id %}
+            <div class="flex gap-2 justify-end">
+              <form method="post" action="/admin/users/{{ u.id }}/suspend">
+                <button type="submit" class="text-xs border border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-400 px-2 py-1 rounded transition-colors">
+                  {{ 'Unsuspend' if not u.is_active else 'Suspend' }}
+                </button>
+              </form>
+              <form method="post" action="/admin/users/{{ u.id }}/delete"
+                    onsubmit="return confirm('Delete {{ u.username }}? This cannot be undone.')">
+                <button type="submit" class="text-xs border border-red-900 hover:border-red-600 text-red-600 hover:text-red-400 px-2 py-1 rounded transition-colors">
+                  Delete
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}CyberSkills Hub — IAM & Cybersecurity Skills for Claude{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="relative overflow-hidden py-20 px-4">
+  <div class="absolute inset-0 bg-gradient-to-br from-cyan-950/30 via-slate-950 to-slate-950"></div>
+  <div class="relative max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-4 py-1 text-cyan-400 text-xs font-medium mb-6">
+      <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+      Powered by Anthropic Skills Framework
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
+      AI Skills for<br/><span class="text-cyan-400">Identity & Cybersecurity</span>
+    </h1>
+    <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-8">
+      Download and deploy expert-level Claude agent skills for Okta, SailPoint, CyberArk, and more. Built on MITRE ATT&CK and NIST frameworks.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/skills" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-6 py-3 rounded-xl transition-colors">
+        Browse Skills
+      </a>
+      <a href="/skills/upload" class="border border-slate-700 hover:border-cyan-500 text-slate-300 hover:text-cyan-400 font-semibold px-6 py-3 rounded-xl transition-colors">
+        Upload a Skill
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="border-y border-slate-800 bg-slate-900/50 py-6">
+  <div class="max-w-5xl mx-auto px-4 grid grid-cols-3 gap-4 text-center">
+    <div>
+      <div class="text-2xl font-bold text-cyan-400">{{ total_skills }}</div>
+      <div class="text-slate-400 text-sm mt-0.5">Skills Available</div>
+    </div>
+    <div>
+      <div class="text-2xl font-bold text-emerald-400">{{ total_downloads }}</div>
+      <div class="text-slate-400 text-sm mt-0.5">Downloads</div>
+    </div>
+    <div>
+      <div class="text-2xl font-bold text-violet-400">{{ total_contributors }}</div>
+      <div class="text-slate-400 text-sm mt-0.5">Contributors</div>
+    </div>
+  </div>
+</section>
+
+<!-- Vendor Cards -->
+<section class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-xl font-semibold text-white mb-6">Skills by Platform</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+    <a href="/skills?vendor=okta" class="group bg-slate-900 border border-slate-800 hover:border-yellow-500/50 rounded-2xl p-6 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-bold uppercase tracking-widest vendor-okta px-3 py-1 rounded-full border">Okta</span>
+        <span class="text-2xl font-bold text-yellow-400">{{ vendor_counts.get('okta', 0) }}</span>
+      </div>
+      <p class="text-slate-400 text-sm">Identity platform skills — authentication, MFA, lifecycle management, zero trust policies.</p>
+      <div class="mt-4 text-yellow-400 text-xs group-hover:underline">Browse Okta Skills →</div>
+    </a>
+
+    <a href="/skills?vendor=sailpoint" class="group bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-2xl p-6 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-bold uppercase tracking-widest vendor-sailpoint px-3 py-1 rounded-full border">SailPoint</span>
+        <span class="text-2xl font-bold text-blue-400">{{ vendor_counts.get('sailpoint', 0) }}</span>
+      </div>
+      <p class="text-slate-400 text-sm">IGA skills — access certifications, SoD violation detection, role mining, entitlement review.</p>
+      <div class="mt-4 text-blue-400 text-xs group-hover:underline">Browse SailPoint Skills →</div>
+    </a>
+
+    <a href="/skills?vendor=cyberark" class="group bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-2xl p-6 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-bold uppercase tracking-widest vendor-cyberark px-3 py-1 rounded-full border">CyberArk</span>
+        <span class="text-2xl font-bold text-red-400">{{ vendor_counts.get('cyberark', 0) }}</span>
+      </div>
+      <p class="text-slate-400 text-sm">PAM skills — vault audits, privileged session monitoring, credential rotation, JIT access review.</p>
+      <div class="mt-4 text-red-400 text-xs group-hover:underline">Browse CyberArk Skills →</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- Category Grid -->
+<section class="max-w-7xl mx-auto px-4 pb-12">
+  <h2 class="text-xl font-semibold text-white mb-6">Browse by Category</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    {% set cat_icons = {
+      'Detection & Analysis': '🔍',
+      'Investigation & Forensics': '🔬',
+      'Defense & Hardening': '🛡️',
+      'Response & Remediation': '⚡',
+      'Testing & Validation': '🧪',
+      'Identity & Access Management': '🔑'
+    } %}
+    {% for cat in categories %}
+    <a href="/skills?category={{ cat | urlencode }}"
+       class="bg-slate-900 border border-slate-800 hover:border-cyan-500/50 rounded-xl p-4 text-center transition-all group">
+      <div class="text-2xl mb-2">{{ cat_icons.get(cat, '🔐') }}</div>
+      <div class="text-xs text-slate-400 group-hover:text-cyan-400 transition-colors leading-snug">{{ cat }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Featured Skills -->
+{% if featured_skills %}
+<section class="max-w-7xl mx-auto px-4 pb-16">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold text-white">Most Downloaded Skills</h2>
+    <a href="/skills" class="text-cyan-400 text-sm hover:underline">View all →</a>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for skill in featured_skills %}
+    {% include "skills/_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Upload CTA -->
+<section class="max-w-3xl mx-auto px-4 pb-16 text-center">
+  <div class="bg-gradient-to-r from-cyan-950/50 to-slate-900 border border-cyan-800/30 rounded-2xl p-10">
+    <h2 class="text-2xl font-bold text-white mb-3">Share Your Expertise</h2>
+    <p class="text-slate-400 mb-6">Have a skill that could help the IAM community? Upload it and contribute to the collective defense.</p>
+    <a href="{% if current_user %}/skills/upload{% else %}/auth/register{% endif %}"
+       class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-6 py-3 rounded-xl transition-colors inline-block">
+      {% if current_user %}Upload a Skill{% else %}Join & Contribute{% endif %}
+    </a>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Register Security Key — CyberSkills Hub{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-10">
+
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-white mb-2">Security Key Management</h1>
+    <p class="text-slate-400 text-sm">Register FIDO2 / YubiKey devices for admin MFA. Required for admin login when a key is registered.</p>
+  </div>
+
+  <!-- Registered keys -->
+  {% if existing_keys %}
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4">Registered Keys</h2>
+    <div class="space-y-3">
+      {% for key in existing_keys %}
+      <div class="flex items-center justify-between py-2 border-b border-slate-800 last:border-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center justify-center text-cyan-400">
+            🔑
+          </div>
+          <div>
+            <p class="text-white text-sm font-medium">{{ key.device_name }}</p>
+            <p class="text-slate-500 text-xs">
+              Registered {{ key.created_at.strftime('%b %d, %Y') }}
+              {% if key.last_used_at %} · Last used {{ key.last_used_at.strftime('%b %d, %Y') }}{% endif %}
+            </p>
+          </div>
+        </div>
+        <form method="post" action="/auth/fido2/credentials/{{ key.id }}/delete"
+              onsubmit="return confirm('Remove this security key?')">
+          <button type="submit" class="text-xs text-red-400 hover:text-red-300 border border-red-800 hover:border-red-600 px-3 py-1 rounded-lg transition-colors">
+            Remove
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Register new key -->
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4">Register New Security Key</h2>
+
+    <div id="reg-initial">
+      <div class="mb-4">
+        <label class="block text-sm text-slate-300 font-medium mb-1.5">Device Name</label>
+        <input id="device-name" value="YubiKey 5"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-cyan-500 text-sm" />
+        <p class="text-xs text-slate-600 mt-1">e.g. YubiKey 5 NFC, YubiKey Bio</p>
+      </div>
+      <button id="btn-register"
+        class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+        🔑 Register Security Key
+      </button>
+    </div>
+
+    <div id="reg-waiting" class="hidden text-center py-4">
+      <div class="text-3xl mb-3 animate-pulse">🔑</div>
+      <p class="text-slate-300 font-medium">Touch your YubiKey now…</p>
+      <p class="text-slate-500 text-xs mt-1">Insert the key and tap the gold disc</p>
+    </div>
+
+    <div id="reg-error" class="hidden">
+      <div class="bg-red-900/30 border border-red-700 text-red-400 rounded-xl px-4 py-3 mb-4 text-sm" id="reg-error-msg"></div>
+      <button id="btn-retry" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl text-sm">Try Again</button>
+    </div>
+
+    <div id="reg-success" class="hidden text-center py-4">
+      <div class="text-3xl mb-3">✅</div>
+      <p class="text-emerald-400 font-medium">Security key registered successfully!</p>
+      <a href="/auth/fido2/register" class="text-sm text-cyan-400 hover:underline mt-2 inline-block">Refresh to see updated list</a>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <a href="/admin" class="text-cyan-400 text-sm hover:underline">← Back to Admin Panel</a>
+  </div>
+</div>
+
+<script src="/static/js/webauthn.js"></script>
+<script>
+  document.getElementById('btn-register').addEventListener('click', registerKey);
+  document.getElementById('btn-retry')?.addEventListener('click', () => { showReg('initial'); registerKey(); });
+
+  async function registerKey() {
+    const deviceName = document.getElementById('device-name').value || 'YubiKey';
+    showReg('waiting');
+    try {
+      const opts = await fetchJSON('/auth/fido2/register/begin', 'POST');
+      const credential = await navigator.credentials.create({ publicKey: parseRegOpts(opts) });
+      const payload = { ...serializeAttestation(credential), device_name: deviceName };
+      await fetchJSON('/auth/fido2/register/complete', 'POST', payload);
+      showReg('success');
+    } catch (err) {
+      document.getElementById('reg-error-msg').textContent = err.message || 'Registration failed.';
+      showReg('error');
+    }
+  }
+
+  function showReg(state) {
+    ['initial', 'waiting', 'error', 'success'].forEach(s =>
+      document.getElementById('reg-' + s)?.classList.toggle('hidden', s !== state)
+    );
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}CyberSkills Hub{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#22d3ee', dark: '#0891b2' },
+          }
+        }
+      }
+    }
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    body { background-color: #020617; color: #e2e8f0; }
+    .skill-card:hover { transform: translateY(-2px); transition: transform 0.15s ease; }
+    .vendor-okta    { background: #f59e0b22; border-color: #f59e0b; color: #fbbf24; }
+    .vendor-sailpoint{ background: #3b82f622; border-color: #3b82f6; color: #60a5fa; }
+    .vendor-cyberark { background: #ef444422; border-color: #ef4444; color: #f87171; }
+    .vendor-community{ background: #10b98122; border-color: #10b981; color: #34d399; }
+    pre, code { background: #0f172a; border-radius: 4px; }
+    .prose h1, .prose h2, .prose h3 { color: #e2e8f0; }
+    .prose p, .prose li { color: #94a3b8; }
+    .prose code { color: #22d3ee; padding: 0 4px; }
+    .prose pre { padding: 1rem; overflow-x: auto; }
+    .prose a { color: #22d3ee; }
+    .prose table { width: 100%; border-collapse: collapse; }
+    .prose th { background: #1e293b; color: #e2e8f0; padding: 8px 12px; text-align: left; }
+    .prose td { padding: 8px 12px; border-bottom: 1px solid #1e293b; color: #94a3b8; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Nav -->
+  <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <a href="/" class="flex items-center gap-2 text-cyan-400 font-bold text-lg tracking-tight">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        CyberSkills Hub
+      </a>
+      <div class="flex items-center gap-6 text-sm">
+        <a href="/skills" class="text-slate-400 hover:text-cyan-400 transition-colors">Browse Skills</a>
+        {% if current_user %}
+          <a href="/skills/upload" class="text-slate-400 hover:text-cyan-400 transition-colors">Upload</a>
+          {% if current_user.role == 'admin' %}
+            <a href="/admin" class="text-slate-400 hover:text-cyan-400 transition-colors">Admin</a>
+            <a href="/auth/fido2/register" class="text-slate-400 hover:text-cyan-400 transition-colors" title="Security Keys">🔑</a>
+          {% endif %}
+          <a href="/auth/logout" class="text-slate-500 hover:text-red-400 transition-colors">Logout ({{ current_user.username }})</a>
+        {% else %}
+          <a href="/auth/login" class="text-slate-400 hover:text-cyan-400 transition-colors">Login</a>
+          <a href="/auth/register" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-3 py-1.5 rounded-lg transition-colors text-xs">Sign Up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-8 mt-16">
+    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+      <p>CyberSkills Hub — IAM & Cybersecurity Skills for Claude AI Agents</p>
+      <p class="mt-1 text-slate-600">Skills follow the <a href="https://agentskills.io" class="text-cyan-700 hover:text-cyan-500" target="_blank">agentskills.io</a> standard</p>
+    </div>
+  </footer>
+
+</body>
+</html>
